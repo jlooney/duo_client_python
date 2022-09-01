@@ -519,6 +519,92 @@ class Admin(client.Client):
             row['host'] = self.host
         return response
 
+    def get_activity_logs(self, mintime, maxtime, limit=100, next_offset=None, sort='ts:asc',):
+        """
+        Returns telephony log events.
+
+        mintime - Fetch events only >= mintime (to avoid duplicate
+                  records that have already been fetched)
+
+        Returns:
+            [
+                {'timestamp': <int:unix timestamp>,
+                 'eventtype': "telephony",
+                 'host': <str:host>,
+                 'context': <str:context>,
+                 'type': <str:type>,
+                 'phone': <str:phone number>,
+                 'credits': <str:credits>}, ...
+
+
+                {"access_device": {
+                    "browser": <str:browser>,
+                    "browser_version": <str:browser_version>,
+                    "ip": {
+                        "address": <srt:address>,
+                    },
+                    "location": {
+                        "coordinates": {
+                            "latitude": <int:latitude>,
+                            "longitude": <int:longitude>
+                        },
+                        "city": <str:city>,
+                        "country": <str:country>,
+                        "state": <str:state>,
+                    },
+                    "os": <str:os>,
+                    "os_version": <str:os_version>,
+                },
+                "action": "phone_create",
+                "activity_id": "edf96844-6e03-4528-963f-1fab8d5fabaa",
+                "actor": {
+                    "details": "{\"created\": \"2020-01-13T18:56:20.351346+00:00\", \"last_login\": \"2020-02-10T18:56:20.351346+00:00\", \"status\": \"Locked Out\"}"
+                    "key": "DUJX7L9A8RKZ4YSK4UDF",
+                    "name": "Steven Stevenson",
+                    "type": "user"
+                },
+                "akey": "DAJ7NVG73RLS4ZW83WR7",
+                "application": {
+                    "key": "DIZ9NXDPG2IOPVDC2J77",
+                    "name": "AdminAPI",
+                    "type": "adminapi"
+                },
+                "target": {
+                    "details": "{\"number\": \"+18888675309\", \"extension\": \"\"}",
+                    "key": "DPI2MSEI99KMOXBFPYUY",
+                    "name": "888-867-5309",
+                    "type": "phone"
+                },
+                "ts": "2020-02-13T18:56:20.351346+00:00"
+            }
+
+            ]
+
+        Raises RuntimeError on error.
+        """
+        # Sanity check mintime as unix timestamp, then transform to string
+        mintime = str(int(mintime))
+        maxtime = str(int(maxtime))
+        params = {
+            'mintime': mintime,
+            'maxtime': maxtime,
+            'limit': limit,
+            'next_offset': next_offset,
+            'sort': sort,
+        }
+        print('made it 1')
+        response = self.json_api_call(
+            'GET',
+            '/admin/v2/logs/user_activity',
+            params,
+        )
+        print('made it 2')
+        print(f'response: {response}')
+        for row in response:
+            row['eventtype'] = 'telephony'
+            row['host'] = self.host
+        return response
+
     def get_users_iterator(self):
         """
         Returns iterator of user objects.
